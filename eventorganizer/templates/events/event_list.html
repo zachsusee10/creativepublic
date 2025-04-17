@@ -1,0 +1,31 @@
+
+
+{% extends 'base.html' %}
+
+{% block title %}All Events - Event Organizer{% endblock %}
+
+{% block content %}
+    <h2>All Events</h2>
+
+    <form method="get">
+        <input type="text" name="q" placeholder="Search by keyword" value="{{ request.GET.q }}">
+        <input type="text" name="host" placeholder="Host username" value="{{ request.GET.host }}">
+        <input type="text" name="event_type" placeholder="Event Type" value="{{ request.GET.event_type }}">
+        <input type="number" name="min_attendees" placeholder="Min Attendees" value="{{ request.GET.min_attendees }}">
+        <input type="number" name="max_attendees" placeholder="Max Attendees" value="{{ request.GET.max_attendees }}">
+        <input type="date" name="start_date" value="{{ request.GET.start_date }}">
+        <input type="date" name="end_date" value="{{ request.GET.end_date }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <ul>
+        {% for event in events %}
+            <li>
+                <a href="{% url 'event_detail' event_id=event.id %}">{{ event.title }}</a>
+                on {{ event.date|date:"Y-m-d H:i" }} at {{ event.location }}
+            </li>
+        {% empty %}
+            <li>No events available.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

@@ -1,0 +1,66 @@
+
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - Event Organizer{% endblock %}
+
+{% block content %}
+    <h2>{{ event.title }}</h2>
+    <p><strong>Date:</strong> {{ event.date|date:"Y-m-d H:i" }}</p>
+    <p><strong>Location:</strong> {{ event.location }}</p>
+    <p><strong>Hosted by:</strong> {{ event.host.username }}</p>
+    <p><strong>Category:</strong> {{ event.category }}</p>
+    <p><strong>Description:</strong></p>
+    <p>{{ event.description }}</p>
+
+    {% if user == event.host %}
+        <p>
+            <a href="{% url 'edit_event' event_id=event.id %}">Edit Event</a> |
+            <a href="{% url 'delete_event' event_id=event.id %}">Delete Event</a> |
+            <a href="{% url 'invite_user' event_id=event.id %}">Invite User</a>
+        </p>
+        <h3>Pending RSVPs:</h3>
+        <ul>
+            {% for invitation in invitations %}
+                {% if invitation.status == 'PENDING' and not invitation.is_from_host %}
+                    <li>
+                        {{ invitation.invitee.username }}
+                        <form method="post" action="{% url 'respond_rsvp' event_id=event.id invitation_id=invitation.id %}">
+                            {% csrf_token %}
+                            <button name="response" value="ACCEPTED" type="submit">Accept</button>
+                            <button name="response" value="DECLINED" type="submit">Decline</button>
+                        </form>
+                    </li>
+                {% endif %}
+            {% empty %}
+                <li>No pending RSVPs.</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        {% if user_invitation %}
+            {% if user_invitation.status == 'PENDING' %}
+                <p>Your RSVP request is pending approval.</p>
+            {% elif user_invitation.status == 'ACCEPTED' %}
+                <p>You are attending this event.</p>
+            {% elif user_invitation.status == 'DECLINED' %}
+                <p>Your RSVP request was declined.</p>
+            {% endif %}
+        {% else %}
+            <form method="post" action="{% url 'rsvp_event' event_id=event.id %}">
+                {% csrf_token %}
+                <button type="submit">RSVP to this Event</button>
+            </form>
+        {% endif %}
+    {% endif %}
+
+    <h3>Attendees:</h3>
+    <ul>
+        {% for invitation in invitations %}
+            {% if invitation.status == 'ACCEPTED' %}
+                <li>{{ invitation.invitee.username }}</li>
+            {% endif %}
+        {% empty %}
+            <li>No attendees yet.</li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
